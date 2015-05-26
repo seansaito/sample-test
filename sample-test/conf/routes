@@ -12,13 +12,13 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 # Givery Test Routes
 
 # companies_events.spec.js
-POST      /api/companies/events/:token/:from       controllers.CompanyController.events(token: String, from: date, offset: Option[Int], limit: Option[Int]))
+POST      /api/companies/events/:token/:from       controllers.CompanyController.events(token: String, from: String, offset: Option[Int], limit: Option[Int])
 
 # login.spec.js
 POST      /api/auth/login/:email/:password         controllers.LoginManager.login(email: String, password: String)
 
 # users_events.spec.js
-GET       /api/users/events/:from                  controllers.UserController.events(from: date, offset: Option[Int], limit: Option[Int])
+GET       /api/users/events/:from                  controllers.UserController.events(from: String, offset: Option[Int], limit: Option[Int])
 
 # users_reserve.spec.js
 POST      /api/users/reserve/:token/:id/:reserve   controllers.UserController.reserve(token: String, id: Int, reserve: Boolean)

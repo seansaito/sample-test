@@ -3,13 +3,65 @@ package controllers
 import play.api._
 import play.api.mvc._
 
-import anorm._
-import anorm.SqlParser._
+import play.api.libs.json._
+import play.api.libs.iteratee.Enumerator
 
-import play.api.db._
-import play.api.Play.current
+import models.User
+import models.EventForStudents
+import models.Reservation
 
-import com.github.nscala_time.time.Imports._
+object UserController extends Controller {
+
+  def events(from: String, offset: Option[Int], limit: Option[Int]) = Action {
+    if (from == null || limit.getOrElse(null) == 0) {
+      BadRequest("Invalid parameters")
+    }
+    var events = EventForStudents.findForStudent(from, offset, limit)
+    Ok(JsObject(Seq("code" -> JsNumber(200), "events" -> Json.toJson(events))))
+
+  }
+
+  def reserve(token: String, id: Int, reserve: Boolean) = Action { request =>
+    if (token == null) {
+      SimpleResult(
+        header=ResponseHeader(401),
+        body=Enumerator("Require authentication")
+      )
+    }
+    val session: Session = request.session
+    val user: User = User.findByEmail(session(token))(0)
+    if (user.group_id == 2) {
+      SimpleResult(
+        header=ResponseHeader(401),
+        body=Enumerator("Unauthorized action for companies")
+      )
+    }
+
+    if (reserve) {
+      Reservation.reserve(user.id, id) match {
+        case true => Ok(JsObject(
+          Seq("code" -> JsNumber(200),
+              "message" -> JsString("Successfully reserved"))
+        ))
+        case false => SimpleResult(
+          header=ResponseHeader(501),
+          body=Enumerator("Cannot reserve already reserved event")
+        )
+      }
+    } else {
+      Reservation.unreserve(user.id, id) match {
+        case true => Ok(JsObject(
+          Seq("code" -> JsNumber(200),
+              "message" -> JsString("Successfully unreserved"))
+        ))
+        case false => SimpleResult(
+          header=ResponseHeader(502),
+          body=Enumerator("Cannot unreserve unreserved event")
+        )
+      }
+    }
+  }
+}
 
 /*Overview of users_events.spec.js
 
@@ -22,7 +74,7 @@ import com.github.nscala_time.time.Imports._
   Response
     contentType: JSON
     data:
-      code: int, events: [{id: int, name, string, start_date: date,
+      code: int, events: [{id: int, name: string, start_date: date,
                           company: {id: int, name: string}}]
 
   Tests
@@ -119,15 +171,3 @@ import com.github.nscala_time.time.Imports._
     Params: token = token, event_id = 1, reserve = false
     Response: 502
 */
-
-object UserController extends Controller {
-
-  def events(from: String, offset: Option[Int], limit: Option[Int]) = Action {
-
-  }
-
-  def reserve(token: String, id: Int, reserve: Boolean) = Action {
-
-  }
-
-}

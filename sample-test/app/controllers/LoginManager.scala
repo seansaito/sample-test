@@ -3,13 +3,40 @@ package controllers
 import play.api._
 import play.api.mvc._
 
-import anorm._
-import anorm.SqlParser._
+import play.api.libs.json._
+import play.api.libs.iteratee.Enumerator
 
-import play.api.db._
-import play.api.Play.current
+import models.User
 
-import com.github.nscala_time.time.Imports._
+/*
+  Manager for handling logins.
+*/
+object LoginManager extends Controller {
+
+  /*
+  * Login the user. Returns a 500 Error if it fails.
+  * @params: email[String], password[String]
+  */
+  def login(email: String, password: String) = Action { request =>
+    val md = java.security.MessageDigest.getInstance("SHA-1")
+    val ha = new sun.misc.BASE64Encoder().encode(md.digest(password.getBytes))
+
+    var result = User.find(email, ha)
+
+    result(0) match {
+      case null => SimpleResult(
+        header = ResponseHeader(500),
+        body = Enumerator("Authentication failed")
+      )
+      case User(id, name, password, email, group_id) =>
+        var token = name+email+group_id
+        Ok(JsObject(Seq("code" -> JsNumber(200), "token" -> JsString(token),
+            "user" -> Json.toJson(result(0))))).withSession(
+              token -> email
+      )
+    }
+  }
+}
 
 /*Overview of login.spec.js
 
@@ -18,9 +45,6 @@ import com.github.nscala_time.time.Imports._
     method: POST
     contentType: URLENCODED
     params: email (String), password (String)
-
-    Example query:
-    SELECT * FROM users WHERE email=[email] AND password = sha1([password])
 
   Response
     contentType: JSON
@@ -47,11 +71,3 @@ import com.github.nscala_time.time.Imports._
       data.user.name = "John Smith"
       data.user.group_id = 1
 */
-
-object LoginManager extends Controller {
-
-  def login(email: String, password: String) = Action {
-
-  }
-
-}

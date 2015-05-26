@@ -3,13 +3,42 @@ package controllers
 import play.api._
 import play.api.mvc._
 
-import anorm._
-import anorm.SqlParser._
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json._
 
-import play.api.db._
-import play.api.Play.current
+import models.User
+import models.EventForCompanies
 
-import com.github.nscala_time.time.Imports._
+object CompanyController extends Controller {
+
+  def events(token: String, from: String, offset: Option[Int], limit: Option[Int]) = Action { request =>
+
+    if (token==null) {
+      SimpleResult (
+        header = ResponseHeader(401, Map(CONTENT_TYPE -> "text/plain")),
+        body= Enumerator("Need authentication")
+      )
+    }
+
+    val session: Session = request.session
+    val user: User = User.findByEmail(session(token))(0)
+
+    if (user.group_id == 1) {
+      SimpleResult(
+        header=ResponseHeader(401),
+        body=Enumerator("Unauthorized action for students")
+      )
+    }
+
+    if (from == null || limit.getOrElse(null) == 0) {
+      BadRequest("Invalid parameters")
+    }
+
+    var events = EventForCompanies.findForCompany(user.id, from, offset, limit)
+    Ok(JsObject(Seq("code" -> JsNumber(200), "events" -> Json.toJson(events))))
+
+  }
+}
 
 /*Overview of companies_events.spec.js
 
@@ -19,10 +48,6 @@ import com.github.nscala_time.time.Imports._
     contentType: URLENCODED
     params: token (String), from (Date), offset
       (int, default=0), limit (int, default=1)
-
-    Example query: SELECT * FROM events INNER JOIN users
-    ON user.id=[user's id stored] AND events.user_id=users.id LIMIT limit
-    OFFSET offset
 
   response
     contentType: JSON
@@ -86,18 +111,3 @@ import com.github.nscala_time.time.Imports._
       data.events.length = 1
       data.events[0].name = "Givery Event2"
 */
-
-
-object CompanyController extends Controller {
-
-  def events(token: String, from: String, offset: Option[Int], limit: Option[Int]) = Action {
-    if (token==null) {
-      SimpleResult (
-        header = ResponseHeader(401)
-      )
-    }
-
-  }
-
-
-}

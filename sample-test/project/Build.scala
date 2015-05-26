@@ -9,7 +9,7 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
       // Add your project dependencies here,
-      "com.github.nscala-time" %% "nscala-time" % "2.0.0"
+      //"com.github.nscala-time" %% "nscala-time" % "2.0.0"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
