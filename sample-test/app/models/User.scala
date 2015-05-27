@@ -38,8 +38,8 @@ object User {
     }
 
     // To satisfy API specifications
-    def reads(json: JsValue): User = {
-      User(0, "", "", "", 0)
+    def reads(json: JsValue): JsResult[User] = {
+      JsSuccess(User(0, "", "", "", 0))
     }
   }
 

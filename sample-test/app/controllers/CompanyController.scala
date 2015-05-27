@@ -14,9 +14,9 @@ object CompanyController extends Controller {
   def events(token: String, from: String, offset: Option[Int], limit: Option[Int]) = Action { request =>
 
     if (token==null) {
-      SimpleResult (
+      Result (
         header = ResponseHeader(401, Map(CONTENT_TYPE -> "text/plain")),
-        body= Enumerator("Need authentication")
+        body= Enumerator("Need authentication".getBytes())
       )
     }
 
@@ -24,9 +24,9 @@ object CompanyController extends Controller {
     val user: User = User.findByEmail(session(token))(0)
 
     if (user.group_id == 1) {
-      SimpleResult(
+      Result(
         header=ResponseHeader(401),
-        body=Enumerator("Unauthorized action for students")
+        body=Enumerator("Unauthorized action for students".getBytes())
       )
     }
 

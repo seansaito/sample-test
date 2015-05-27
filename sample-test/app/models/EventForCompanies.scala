@@ -39,8 +39,8 @@ object EventForCompanies {
     }
 
     // To satisfy API specifications
-    def reads(json: JsValue): EventForCompanies = {
-      EventForCompanies(0, "", "", 0)
+    def reads(json: JsValue): JsResult[EventForCompanies] = {
+      JsSuccess(EventForCompanies(0, "", "", 0))
     }
   }
 
@@ -54,8 +54,8 @@ object EventForCompanies {
         """).on(
             'id -> id,
             'from -> from,
-            'limit -> limit.getOrElse("1000"), // A big number
-            'offset -> offset.getOrElse("0")
+            'limit -> limit.getOrElse(1000), // A big number
+            'offset -> offset.getOrElse(0)
           ).as(event *)
     }
   }

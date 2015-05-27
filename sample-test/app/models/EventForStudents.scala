@@ -44,8 +44,8 @@ object EventForStudents {
     }
 
     //To satisfy API specifications
-    def reads(json: JsValue): EventForStudents = {
-      EventForStudents(0, "", "", 0, "")
+    def reads(json: JsValue): JsResult[EventForStudents] = {
+      JsSuccess(EventForStudents(0, "", "", 0, ""))
     }
   }
 
@@ -57,8 +57,8 @@ object EventForStudents {
            AND start_date >= {from} ORDER BY start_date LIMIT {limit} OFFSET {offset}
            """).on(
         'from -> from,
-        'limit -> limit.getOrElse("1000"), // A big number
-        'offset -> offset.getOrElse("0")
+        'limit -> limit.getOrElse(1000), // A big number
+        'offset -> offset.getOrElse(0)
       ).as(event *)
     }
   }

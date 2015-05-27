@@ -24,9 +24,9 @@ object LoginManager extends Controller {
     var result = User.find(email, ha)
 
     result(0) match {
-      case null => SimpleResult(
+      case null => Result(
         header = ResponseHeader(500),
-        body = Enumerator("Authentication failed")
+        body = Enumerator("Authentication failed".getBytes())
       )
       case User(id, name, password, email, group_id) =>
         var token = name+email+group_id

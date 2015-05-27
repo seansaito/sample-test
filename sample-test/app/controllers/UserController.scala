@@ -23,17 +23,17 @@ object UserController extends Controller {
 
   def reserve(token: String, id: Int, reserve: Boolean) = Action { request =>
     if (token == null) {
-      SimpleResult(
+      Result(
         header=ResponseHeader(401),
-        body=Enumerator("Require authentication")
+        body=Enumerator("Require authentication".getBytes())
       )
     }
     val session: Session = request.session
     val user: User = User.findByEmail(session(token))(0)
     if (user.group_id == 2) {
-      SimpleResult(
+      Result(
         header=ResponseHeader(401),
-        body=Enumerator("Unauthorized action for companies")
+        body=Enumerator("Unauthorized action for companies".getBytes())
       )
     }
 
@@ -43,9 +43,9 @@ object UserController extends Controller {
           Seq("code" -> JsNumber(200),
               "message" -> JsString("Successfully reserved"))
         ))
-        case false => SimpleResult(
+        case false => Result(
           header=ResponseHeader(501),
-          body=Enumerator("Cannot reserve already reserved event")
+          body=Enumerator("Cannot reserve already reserved event".getBytes())
         )
       }
     } else {
@@ -54,9 +54,9 @@ object UserController extends Controller {
           Seq("code" -> JsNumber(200),
               "message" -> JsString("Successfully unreserved"))
         ))
-        case false => SimpleResult(
+        case false => Result(
           header=ResponseHeader(502),
-          body=Enumerator("Cannot unreserve unreserved event")
+          body=Enumerator("Cannot unreserve unreserved event".getBytes())
         )
       }
     }
