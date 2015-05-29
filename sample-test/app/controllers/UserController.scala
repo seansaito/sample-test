@@ -10,13 +10,19 @@ import models.User
 import models.EventForStudents
 import models.Reservation
 
+import com.github.nscala_time.time.Imports._
+import java.util.Date
+
 object UserController extends Controller {
 
-  def events(from: String, offset: Option[Int], limit: Option[Int]) = Action {
+  def events(from: Date, offset: Option[Int], limit: Option[Int]) = Action {
     if (from == null || limit.getOrElse(null) == 0) {
       BadRequest("Invalid parameters")
     }
-    var events = EventForStudents.findForStudent(from, offset, limit)
+
+    val fromDateTime = new DateTime(from)
+
+    var events = EventForStudents.findForStudent(fromDateTime, offset, limit)
     Ok(JsObject(Seq("code" -> JsNumber(200), "events" -> Json.toJson(events))))
 
   }

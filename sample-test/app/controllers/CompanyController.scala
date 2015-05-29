@@ -9,9 +9,12 @@ import play.api.libs.json._
 import models.User
 import models.EventForCompanies
 
+import com.github.nscala_time.time.Imports._
+import java.util.Date
+
 object CompanyController extends Controller {
 
-  def events(token: String, from: String, offset: Option[Int], limit: Option[Int]) = Action { request =>
+  def events(token: String, from: Date, offset: Option[Int], limit: Option[Int]) = Action { request =>
 
     if (token==null) {
       Result (
@@ -34,7 +37,9 @@ object CompanyController extends Controller {
       BadRequest("Invalid parameters")
     }
 
-    var events = EventForCompanies.findForCompany(user.id, from, offset, limit)
+    val fromDateTime = new DateTime(from)
+
+    var events = EventForCompanies.findForCompany(user.id, fromDateTime, offset, limit)
     Ok(JsObject(Seq("code" -> JsNumber(200), "events" -> Json.toJson(events))))
 
   }

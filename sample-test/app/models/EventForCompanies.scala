@@ -9,7 +9,9 @@ import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.libs.json._
 
-case class EventForCompanies(id: Int, name: String, start_date: String, number_of_attendees: Int)
+import com.github.nscala_time.time.Imports._
+
+case class EventForCompanies(id: Int, name: String, start_date: DateTime, number_of_attendees: Int)
 
 object EventForCompanies {
 
@@ -17,7 +19,7 @@ object EventForCompanies {
   val event = {
     get[Int]("id") ~
     get[String]("name") ~
-    get[String]("start_date") ~
+    get[DateTime]("start_date") ~
     get[Int]("number_of_attendees") map {
       case id~name~start_date~number_of_attendees =>
         EventForCompanies(id, name, start_date, number_of_attendees)
@@ -32,7 +34,7 @@ object EventForCompanies {
       val eventSequence = Seq(
         "id" -> JsNumber(event.id),
         "name" -> JsString(event.name),
-        "start_date" -> JsString(event.start_date),
+        "start_date" -> JsString(event.start_date.toString()),
         "number_of_attendees" -> JsNumber(event.number_of_attendees)
       )
       JsObject(eventSequence)
@@ -40,11 +42,11 @@ object EventForCompanies {
 
     // To satisfy API specifications
     def reads(json: JsValue): JsResult[EventForCompanies] = {
-      JsSuccess(EventForCompanies(0, "", "", 0))
+      JsSuccess(EventForCompanies(0, "", DateTime.now, 0))
     }
   }
 
-  def findForCompany(id: Int, from: String, offset: Option[Int], limit: Option[Int]): List[EventForCompanies] = {
+  def findForCompany(id: Int, from: DateTime, offset: Option[Int], limit: Option[Int]): List[EventForCompanies] = {
     DB.withConnection { implicit c =>
       SQL("""
         SELECT event.id, event.name, event.start_date, COUNT(attend.event_id)
@@ -53,7 +55,7 @@ object EventForCompanies {
         >= {from} GROUP BY event.id LIMIT {limit} OFFSET {offset}
         """).on(
             'id -> id,
-            'from -> from,
+            'from -> from.toString(),
             'limit -> limit.getOrElse(1000), // A big number
             'offset -> offset.getOrElse(0)
           ).as(event *)
